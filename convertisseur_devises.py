@@ -11,16 +11,18 @@ fichier_historique = open("historique.txt", "r")
 
 run = True
 while run:
+    # récupérer les devises favorites depuis le fichier .csv
     devises_fav = {}
     with open('favoris.csv' , 'r') as f:
         for line in f:
             d = line.split(':')
             devises_fav[ d[0] ] = float ( d[1] )
     
+    # demander si l'utilisateur veux consulter l'historique
     consutler_historique = input("Voulez-vous consulter l'historique? O/N \n")
     if consutler_historique.upper() == "O":
-        print(fichier_historique.read())
-        fichier_historique.close()
+        print(fichier_historique.read())    # afficher le contenu du fichier
+        fichier_historique.close()          # fermer le fichier
 
     try:
         montant = float(input("Entrer un montant en chiffres: "))
@@ -28,9 +30,11 @@ while run:
         montant = 0
     devise_conversion = input("Entrer une devise de conversion ou une nouvelle devise: ").upper()
 
+    # si la devise n'est pas connue
     if devise_conversion not in liste_devises and devise_conversion not in devises_fav:
         print("La devise de conversion n'est pas dans ma base de données. /n")
 
+        # ajouter une nouvelle devise
         print("voulez-vous ajouter une devise? O/N")
         ajout = input().upper()
         if ajout == "O":
@@ -40,22 +44,28 @@ while run:
             except:
                 print("Entrer un taux sous forme de chiffre")
 
-            devises_fav[new_devise] = new_taux
+            devises_fav[new_devise] = new_taux # enregistrer la devise dans un fichier .csv
             with open('favoris.csv', 'a') as f:
                 [f.write('{0}:{1}\n'.format(key, value)) for key, value in devises_fav.items()]
 
     elif montant == 0:
         print("Entrez un montant valide")
-    elif devise_conversion in devises_fav:
-        print(montant*devises_fav[devise_conversion])
-    else:
-        conversion = cr.convert(devise.upper(), devise_conversion.upper(), montant)
-        print(conversion)
 
+    elif devise_conversion in devises_fav:  # conversion avec une devise perso
+        print(montant*devises_fav[devise_conversion])
+        # enregistrement dans l'historique
         historique = f"{montant} {devise.upper()} -> {conversion} {devise_conversion.upper()}"
         with open("historique.txt", "a") as fichier:
             fichier.write(historique + "\n")
 
-    stop = input("continuer ? O/N: \n")
-    if stop.upper() == "N":
+    else:   # conversion avec forex_python
+        conversion = cr.convert(devise.upper(), devise_conversion.upper(), montant)
+        print(conversion)
+        # enregistrement dans l'historique
+        historique = f"{montant} {devise.upper()} -> {conversion} {devise_conversion.upper()}"
+        with open("historique.txt", "a") as fichier:
+            fichier.write(historique + "\n")
+
+    stop = input("continuer ? O/N: \n").upper()
+    if stop == "N":
         run = False
